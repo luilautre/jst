@@ -8,7 +8,7 @@ Compatible **local**, **Vercel** et importable via **npm**.
 ## Installation
 
 ```bash
-npm install jst-server
+npm install @luilautre/jst
 ```
 
 Ou directement depuis GitHub :
@@ -30,10 +30,19 @@ npx jst 8080     # port au choix
 ### Dans un projet Node.js / Vercel
 
 ```js
-const { creerApp } = require('jst-server');
-const app = creerApp({ racine: __dirname });
+const path = require('path');
+const { creerApp } = require('@luilautre/jst');
+
+const app = creerApp({
+  racine: path.resolve('./'),           // variables.json, functions.js ici
+  public: path.join(path.resolve('./'), 'public') // fichiers HTML/CSS/JS ici
+});
+
 module.exports = app; // pour Vercel
-// ou : app.listen(3000); // pour un serveur local
+
+if (require.main === module) {
+  app.listen(3000, () => console.log('Serveur sur http://localhost:3000'));
+}
 ```
 
 ---
@@ -41,10 +50,12 @@ module.exports = app; // pour Vercel
 ## Fonctionnement
 
 À chaque requête, JST Server :
-1. Lit le fichier demandé
+1. Lit le fichier demandé dans le dossier `public/`
 2. Remplace les `{{variables}}` avec le contenu de `variables.json`
-3. Injecte les `{{include: fichier}}` 
-4. Envoie le résultat au client — aucun fichier généré sur le disque
+3. Remplace les `{{_constantes_}}` internes (date, URL, heure...)
+4. Appelle les `{{fonctions()}}` déclarées dans `functions.js`
+5. Injecte les `{{include: fichier}}`
+6. Envoie le résultat au client — aucun fichier généré sur le disque
 
 ---
 
@@ -62,6 +73,61 @@ Définis tes variables globales dans un fichier `variables.json` à la racine :
 ```
 
 Les variables peuvent s'imbriquer (`{{ThisURL}}` dans `SiteHeader` est résolu automatiquement).
+
+---
+
+## Constantes internes
+
+JST fournit des constantes automatiques utilisables dans tous les fichiers :
+
+```
+{{_thisURL_}}      URL de la requête courante
+{{_thisFile_}}     Nom du fichier
+{{_thisDir_}}      Dossier du fichier
+{{_host_}}         Nom d'hôte
+{{_protocol_}}     http ou https
+{{_method_}}       GET, POST...
+{{_ip_}}           IP du visiteur
+{{_date_}}         Date (YYYY-MM-DD)
+{{_time_}}         Heure (HH:MM:SS)
+{{_datetime_}}     Date et heure ISO
+{{_timestamp_}}    Timestamp Unix
+{{_year_}}         Année
+{{_month_}}        Mois
+{{_day_}}          Jour
+{{_weekday_}}      Jour de la semaine (ex: Lundi)
+{{_env_}}          development ou production
+{{_jstVersion_}}   Version de JST
+```
+
+---
+
+## Fonctions
+
+Déclare des fonctions dans `functions.js` à la racine :
+
+```js
+module.exports = {
+  // Usage : {{lien(/contact.html, Contactez-nous)}}
+  lien([href, texte]) {
+    return `<a href="${href}">${texte || href}</a>`;
+  },
+
+  // Usage : {{header(Mon Site, /logo.png)}}
+  header([titre, logo], contexte, vars) {
+    return `<header><a href="${vars._protocol_}://${vars._host_}/">${titre}</a></header>`;
+  },
+
+  // Usage : {{dateFormatee(fr-FR)}}
+  dateFormatee([locale]) {
+    return new Date().toLocaleDateString(locale || 'fr-FR', {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+    });
+  }
+};
+```
+
+Chaque fonction reçoit `(args, contexte, variables)` et retourne une string HTML.
 
 ---
 
@@ -93,42 +159,45 @@ libs/
 
 ## Déploiement sur Vercel
 
-1. Crée un fichier `api/index.js` :
+1. Crée `server.js` à la racine :
 ```js
 const path = require('path');
-const { creerApp } = require('jst-server');
-const app = creerApp({ racine: path.join(__dirname, '..', 'public') });
+const { creerApp } = require('@luilautre/jst');
+
+const app = creerApp({
+  racine: path.resolve('./'),
+  public: path.join(path.resolve('./'), 'public')
+});
+
 module.exports = app;
 ```
 
-2. Ajoute un `vercel.json` :
+2. Ajoute `vercel.json` :
 ```json
 {
-  "version": 2,
-  "builds": [{ "src": "api/index.js", "use": "@vercel/node" }],
-  "routes": [{ "src": "/(.*)", "dest": "api/index.js" }]
+  "builds": [{
+    "src": "server.js",
+    "use": "@vercel/node",
+    "config": {
+      "includeFiles": ["variables.json", "public/**"]
+    }
+  }],
+  "routes": [{ "src": "/(.*)", "dest": "server.js" }]
 }
 ```
 
-3. Déploie :
-```bash
-vercel
-```
-
----
-
-## Structure recommandée
-
+3. Structure du projet :
 ```
 mon-projet/
-├── api/
-│   └── index.js       ← point d'entrée Vercel
-├── public/            ← tes fichiers HTML/CSS/JS
-│   ├── index.html
-│   └── style.css
+├── server.js          ← point d'entrée
+├── vercel.json
+├── package.json
 ├── variables.json     ← variables globales
-├── .jstignore         ← fichiers à ne pas traiter
-└── vercel.json
+├── functions.js       ← fonctions JST (optionnel)
+├── .jstignore         ← fichiers à ne pas traiter (optionnel)
+└── public/            ← tes fichiers HTML/CSS/JS
+    ├── index.html
+    └── style.css
 ```
 
 ---
