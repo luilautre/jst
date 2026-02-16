@@ -1,5 +1,5 @@
 {
-  "name": "jst-server",
+  "name": "@luilautre/jst",
   "version": "1.0.9",
   "description": "Serveur web avec préprocesseur de templates {{variables}} — compatible Node.js, Express et Vercel",
   "main": "lib/index.js",
