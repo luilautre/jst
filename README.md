@@ -20,22 +20,53 @@ npm install luilautre/jst
 
 ## Utilisation
 
-### En ligne de commande (local)
+### 1. Middleware sur app Express existante (recommandé)
+
+Applique JST comme middleware sur ton serveur Express :
+
+```js
+const express = require('express');
+const path = require('path');
+const { jstMiddleware } = require('@luilautre/jst');
+
+const app = express();
+
+// Applique JST sur tous les fichiers
+app.use(jstMiddleware({
+  racine: __dirname,                        // variables.json, functions.js ici
+  public: path.join(__dirname, 'public')    // fichiers HTML/CSS/JS ici
+}));
+
+// Routes personnalisées après
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+app.use((req, res) => {
+  res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
+});
+
+app.listen(3000);
+```
+
+JST traitera automatiquement tous les fichiers avant de les envoyer !
+
+### 2. En ligne de commande (local)
 
 ```bash
 npx jst          # port 3000 par défaut
 npx jst 8080     # port au choix
 ```
 
-### Dans un projet Node.js / Vercel
+### 3. App Express complète (legacy)
 
 ```js
 const path = require('path');
 const { creerApp } = require('@luilautre/jst');
 
 const app = creerApp({
-  racine: path.resolve('./'),           // variables.json, functions.js ici
-  public: path.join(path.resolve('./'), 'public') // fichiers HTML/CSS/JS ici
+  racine: path.resolve('./'),
+  public: path.join(path.resolve('./'), 'public')
 });
 
 module.exports = app; // pour Vercel
