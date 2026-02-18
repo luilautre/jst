@@ -2,6 +2,7 @@
 
 Serveur web Node.js avec préprocesseur de templates `{{variables}}`.  
 Compatible **local**, **Vercel** et importable via **npm**.
+Exemple [https://github.com/luilautre/testJST/](luilautre/testJST)
 
 ---
 
