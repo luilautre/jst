@@ -1,8 +1,7 @@
 # JST Server
 
 Serveur web Node.js avec préprocesseur de templates `{{variables}}`.  
-Compatible **local**, **Vercel** et importable via **npm**.  
-Exemple : [luilautre/testJST](https://github.com/luilautre/testJST/)
+Compatible **local**, **Vercel** et importable via **npm**.
 
 ---
 
@@ -34,23 +33,22 @@ const app = express();
 
 // Applique JST sur tous les fichiers
 app.use(jstMiddleware({
-  racine: __dirname,                        // variables.json, functions.js ici
-  public: path.join(__dirname, 'public')    // fichiers HTML/CSS/JS ici
+  racine: path.resolve('./'),                 // variables.json, functions.js ici
+  public: path.join(path.resolve('./'), 'public'),  // fichiers HTML/CSS/JS ici
+  page404: '404.html'                         // optionnel, défaut: '404.html'
 }));
 
-// Routes personnalisées après
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-app.use((req, res) => {
-  res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
+// Routes personnalisées (optionnel)
+app.get('/api/hello', (req, res) => {
+  res.json({ message: 'Hello' });
 });
 
 app.listen(3000);
 ```
 
-JST traitera automatiquement tous les fichiers avant de les envoyer !
+**Gestion automatique de la 404** : Si un fichier n'existe pas, JST cherche automatiquement `404.html` dans le dossier `public/` et l'affiche avec toutes les variables/fonctions JST. Personnalisable avec l'option `page404`.
+
+JST traitera automatiquement tous les fichiers HTML/CSS/JS avant de les envoyer !
 
 ### 2. En ligne de commande (local)
 
