@@ -3,11 +3,21 @@
 
 const { creerApp } = require('../lib/index');
 const { chargerVariables, chargerIgnore } = require('../lib/preprocessor');
+const { startAdmin } = require('../api/admin.js');
 
-const PORT   = parseInt(process.argv[2]) || 3000;
+const args = process.argv.slice(2);
+
+// ─── Commande : jst admin ────────────────────────────────────────────────
+if (args[0] === "admin") {
+  const port = parseInt(args[1]) || 3030;
+  startAdmin({ port });
+  return;
+}
+
+// ─── Commande : jst (serveur normal) ─────────────────────────────────────
+const PORT   = parseInt(args[0]) || 3000;
 const racine = process.cwd();
 
-// ─── Couleurs terminal ────────────────────────────────────────────────────────
 const OK  = (s) => `\x1b[32m✔ ${s}\x1b[0m`;
 const ERR = (s) => `\x1b[31m✖ ${s}\x1b[0m`;
 const INF = (s) => `\x1b[36mℹ ${s}\x1b[0m`;
@@ -37,3 +47,4 @@ serveur.on('error', (e) => {
   }
   process.exit(1);
 });
+
