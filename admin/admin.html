@@ -1,1 +1,27 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>JST Admin</title>
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
 
+<h1>JST Admin</h1>
+
+<section>
+  <h2>variables.json</h2>
+  <textarea id="jsonEditor"></textarea>
+  <div id="jsonError" class="error"></div>
+  <button onclick="saveJSON()">💾 Sauvegarder</button>
+</section>
+
+<section>
+  <h2>functions.js</h2>
+  <textarea id="codeEditor"></textarea>
+  <button onclick="saveCode()">💾 Sauvegarder</button>
+</section>
+
+<script src="admin.js"></script>
+</body>
+</html>
