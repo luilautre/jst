@@ -1,3 +1,5 @@
+'use strict';
+
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
@@ -40,7 +42,7 @@ function startAdmin({ key = "devkey", port = 3030 } = {}) {
   });
 
   app.listen(port, () => {
-    console.log(`JST Admin running at http://localhost:${port}/?key=${key}`);
+    console.log(`\nJST Admin → http://localhost:${port}/?key=${key}\n`);
   });
 }
 
